@@ -13,6 +13,13 @@ nunjucks.configure('views', {
 });
 app.set('view engine', 'njk');
 
+// middleware
+const doesAgeExists = (req, res, next) => {
+  if (!req.query.age) res.redirect('/');
+
+  return next();
+};
+
 const checkUser = (age, res) => {
   if (age < 18) res.redirect(`/minor?age=${age}`);
   else res.redirect(`/major?age=${age}`);
@@ -24,11 +31,12 @@ app.post('/check', (req, res) => {
   checkUser(req.body.age, res);
 });
 
-app.get('/minor', (req, res) => {
-  const minor = 'menor';
-  const major = 'maior';
-  console.log(req.body.age);
-  return req.body.age < 18 ? res.render('page', { minor }) : res.render('page', { major });
+app.get('/minor', doesAgeExists, (req, res) => {
+  res.send(`Você é menor de idade e possui ${req.query.age} anos.`);
+});
+
+app.get('/major', doesAgeExists, (req, res) => {
+  res.send(`Você é maior de idade e possui ${req.query.age} anos.`);
 });
 
 app.listen(3000);
